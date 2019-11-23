@@ -1,3 +1,7 @@
-import Button from './Button'
+import {
+    Button,
+    ButtonWithLoading
+} from './Button'
+import Sort from './Sort'
 
-export { Button }
+export { Button, ButtonWithLoading, Sort }

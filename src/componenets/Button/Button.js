@@ -1,9 +1,11 @@
 import React from "react";
 import PropTypes from 'prop-types';
+import {withLoading} from '../HOC'
 
 const Button = ({
   onClick,
   className = '',
+  isLoading,
   children,
 }) =>
   <button
@@ -13,6 +15,8 @@ const Button = ({
   >
     {children}
   </button>
+
+  const ButtonWithLoading = withLoading(Button)
 
   Button.propTypes = {
     onClick : PropTypes.func.isRequired,
@@ -37,4 +41,4 @@ const Button = ({
 //   }
 // }
 
-export default Button;
+export {Button, ButtonWithLoading} ;

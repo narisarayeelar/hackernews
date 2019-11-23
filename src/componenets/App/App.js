@@ -1,16 +1,19 @@
 import React, { Component } from "react";
 import axios from 'axios';
-import {DEFAULT_QUERY,
+import {
+  DEFAULT_QUERY,
   DEFAULT_HPP,
   PATH_BASE,
   PATH_SEARCH,
   PARAM_SEARCH,
   PARAM_PAGE,
-  PARAM_HPP
+  PARAM_HPP,
+  SORTS
 } from '../../constants'
-import {Button} from '../Button'
-import {Table} from '../Table'
-import {Search} from '../Search'
+import { ButtonWithLoading } from '../Button'
+import { Table } from '../Table'
+import { Search } from '../Search'
+import { sortBy } from 'lodash'
 import "./App.css";
 
 // const list = [
@@ -50,6 +53,9 @@ class App extends Component {
       result: null,
       searchTerm: DEFAULT_QUERY,
       error: null,
+      isLoading: false,
+      sortKey: 'NONE',
+      isSortReverse: false,
     };
     //New dont'have to do bind (this) to class method. It automatically bind
     // this.onDismiss = this.onDismiss.bind(this);
@@ -99,7 +105,7 @@ class App extends Component {
   //   }
   // }
 
-  setSearchTopStories=(result)=> {
+  setSearchTopStories = (result) => {
     //this.setState({ result: result });
     const { hits, page } = result;
 
@@ -113,13 +119,15 @@ class App extends Component {
     ];
 
     this.setState({
-      result: { hits: updatedHits, page }
+      result: { hits: updatedHits, page },
+      isLoading: false
     });
   }
 
   onSearchSubmit = (event) => {
     //console.log(this.state.searchTerm)
     const { searchTerm } = this.state;
+
     this.fetchSearchTopStories(searchTerm)
     event.preventDefault();
 
@@ -132,16 +140,19 @@ class App extends Component {
     //   .then(response => response.json())
     //   .then(result => this.setSearchTopStories(result))
     //   .catch(error => this.setState({ error }));
-
-      axios(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+    this.setState({ isLoading: true })
+    axios(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
       .then(result => this.setSearchTopStories(result.data))
       .catch(error => this.setState({ error }));
   }
 
-
+  onSort = (sortKey) => {
+    const isSortReverse = this.state.sortKey === sortKey && !this.state.isSortReverse;
+    this.setState({ sortKey, isSortReverse });
+  }
 
   render() {
-    const { result, searchTerm ,error} = this.state;
+    const { result, searchTerm, error, isLoading, sortKey, isSortReverse } = this.state;
     const page = (result && result.page) || 0;
 
     // if (error) {
@@ -159,9 +170,9 @@ class App extends Component {
             onChange={this.onSearchChange}
             onSubmit={this.onSearchSubmit}>
             Search
-          </Search>
+        </Search>
         </div>
-        { error
+        {error
           ? <div className="interactions">
             <p>Something went wrong.</p>
           </div>
@@ -170,13 +181,19 @@ class App extends Component {
               list={result.hits}
               pattern={searchTerm}
               onDismiss={this.onDismiss}
+              sortKey={sortKey}
+              isSortReverse={isSortReverse}
+              onSort={this.onSort}
             />
           )
         }
         <div className="interactions">
-          <Button onClick={() => this.fetchSearchTopStories(searchTerm, page + 1)}>
+          <ButtonWithLoading
+            onClick={() => this.fetchSearchTopStories(searchTerm, page + 1)}
+            isLoading={isLoading}
+          >
             More
-          </Button>
+          </ButtonWithLoading>
         </div>
       </div>
     );
